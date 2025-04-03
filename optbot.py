@@ -1,6 +1,6 @@
 from telegram.ext import Application, CommandHandler, ConversationHandler
-from handlers import add, track, clear, cancel, help
-from chatwithuser import conv_handler
+from handlers import start, track, clear, help
+from add_new_opt_app_flow import conv_handler
 from database import setup_database
 import os
 from dotenv import load_dotenv
@@ -14,6 +14,7 @@ def main():
     
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
+    app.add_handler(CommandHandler("start", start)) 
     app.add_handler(CommandHandler("help", help)) 
 
     app.add_handler(conv_handler)
