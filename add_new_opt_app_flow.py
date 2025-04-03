@@ -1,26 +1,10 @@
 from telegram import Update
 from telegram.ext import MessageHandler, CommandHandler, ConversationHandler, filters, ContextTypes
-from handlers import cancel
 from database import get_connection
 from datetime import datetime
 
 # Define conversation states
 NAME, APPLICATION_DATE, APPROVAL_DATE, CARD_RECEIVED_DATE = range(4)
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text("hi let's consolidate all apps in one place! type /help")
-    return NAME
-
-async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    help_message = (
-        "here are the commands you can use:\n\n"
-        "/add - write your name to start putting in your details.\n"
-        "/cancel - stop inputting your details.\n"
-        "/track - view all the tracked applications.\n"
-        "/clear - clear your own application data from the bot.\n"
-        "/help - show this help message again with available commands."
-    )
-    await update.message.reply_text(help_message)
 
 async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text(
@@ -78,8 +62,12 @@ async def save_application(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     conn.close()
     await update.message.reply_text("Your application data has been saved. Use /track to view all applications!")
 
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    await update.message.reply_text("Operation cancelled. Use /add to begin tracking your application.")
+    return ConversationHandler.END
+
 conv_handler = ConversationHandler(
-    entry_points=[CommandHandler("start", start), CommandHandler("add", add)],
+    entry_points=[CommandHandler("add", add)],
     states={
         NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_name)],
         APPLICATION_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_application_date)],

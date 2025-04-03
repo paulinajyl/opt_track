@@ -2,8 +2,9 @@ from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
 from database import get_connection
 
-# Define conversation states
-NAME, APPLICATION_DATE, APPROVAL_DATE = range(3)
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    await update.message.reply_text("hi let's consolidate all apps in one place! type /help")
+
 # Help command handler
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     help_message = (
@@ -15,17 +16,6 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/help - show this help message again with available commands."
     )
     await update.message.reply_text(help_message)
-
-# Start the tracking process
-async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text(
-        "Please tell me your name to start tracking your application."
-    )
-    return NAME
-
-async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    await update.message.reply_text("Operation cancelled. Use /add to begin tracking your application.")
-    return ConversationHandler.END
 
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     conn = get_connection()
