@@ -3,5 +3,5 @@
 ## Running the app 
 
 ```
-python  optbot.py 
+python  src/main.py 
 ``` 
