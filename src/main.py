@@ -1,14 +1,22 @@
-from telegram.ext import Application, CommandHandler, ConversationHandler
-from handlers import start, track, clear, help
+from telegram.ext import Application
 from add_new_opt_app_flow import conv_handler
 from database import setup_database
 import os
 from dotenv import load_dotenv
+import logging 
+
+from handlers import command_handlers
 
 load_dotenv()
 
 TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
 WEBHOOK_URL = os.environ["WEBHOOK_URL"]
+
+
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
 def main():
     setup_database()
@@ -16,13 +24,12 @@ def main():
     
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
-    app.add_handler(CommandHandler("start", start)) 
-    app.add_handler(CommandHandler("help", help)) 
-    app.add_handler(conv_handler)
-    app.add_handler(CommandHandler("track", track))
-    app.add_handler(CommandHandler("clear", clear))
+    for h in command_handlers: 
+        app.add_handler(h)
 
-    # Check environment to determine running mode
+    app.add_handler(conv_handler)
+
+
     if os.environ['LOCAL_TEST_ENV'] == 'local':
         print("🤖 Bot is starting in polling mode (local development)...")
         app.run_polling()
