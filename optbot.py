@@ -8,8 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 TELEGRAM_TOKEN = os.environ['TELEGRAM_TOKEN']
-
-WEBHOOK_URL = os.environ.get("WEBHOOK_URL")  # this will be your fly.dev URL
+WEBHOOK_URL = os.environ["WEBHOOK_URL"]
 
 def main():
     setup_database()
@@ -22,15 +21,17 @@ def main():
     app.add_handler(conv_handler)
     app.add_handler(CommandHandler("track", track))
     app.add_handler(CommandHandler("clear", clear))
-    
-    print("🤖 Bot is starting via webhook...")
 
-    # Set webhook
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=8080,
-        webhook_url=WEBHOOK_URL  # this will be something like https://opt-track.fly.dev
-    )
-
+    # Check environment to determine running mode
+    if os.environ['ENV'] == 'production':
+        print("🤖 Bot is starting via webhook...")
+        app.run_webhook(
+            listen="0.0.0.0",
+            port=8080,
+            webhook_url=WEBHOOK_URL  # this will be something like https://opt-track.fly.dev
+        )
+    else:
+        print("🤖 Bot is starting in polling mode (local development)...")
+        app.run_polling()
 if __name__ == "__main__":
     main()
