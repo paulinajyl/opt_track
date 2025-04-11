@@ -1,8 +1,16 @@
+import logging
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
 from database import get_connection
 
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"User {update.effective_user.id} started the bot")
     await update.message.reply_text("hi let's consolidate all apps in one place! type /help")
 
 # Help command handler
@@ -15,9 +23,12 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/clear - clear your own application data from the bot.\n"
         "/help - show this help message again with available commands."
     )
+
+    logger.info(f"User {update.effective_user.id} requested help")
     await update.message.reply_text(help_message)
 
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"User {update.effective_user.id} requested track")
     conn = get_connection()
     cursor = conn.cursor()
 
@@ -64,6 +75,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(message)
 
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    logger.info(f"User {update.effective_user.id} cleared entries")
     user_id = update.effective_user.id
     conn = get_connection()
     cursor = conn.cursor()
