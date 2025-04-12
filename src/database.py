@@ -45,21 +45,16 @@ def setup_database():
     CREATE TABLE IF NOT EXISTS applications (
         id SERIAL PRIMARY KEY,
         user_id BIGINT,
-        application_date TEXT,
+        name TEXT,
+        application_type TEXT,
+        premium_processing BOOLEAN,
+        application_date DATE,
         approval_date DATE,
-        card_received_date DATE
+        card_produced_date DATE,
+        card_shipped_date DATE,
+        card_delivered_date DATE
     )
     ''')
-
-    # Check if the 'card_received_date' column exists and add it if necessary
-    cursor.execute("""
-    DO $$
-    BEGIN
-        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'applications' AND column_name = 'card_received_date') THEN
-            ALTER TABLE applications ADD COLUMN card_received_date DATE;
-        END IF;
-    END $$;
-    """)
 
     conn.commit()
     conn.close()
