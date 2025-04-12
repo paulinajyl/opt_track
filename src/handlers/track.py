@@ -6,7 +6,6 @@ from database import get_connection
 logger = logging.getLogger(__name__)
 
 
-
 async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"User {update.effective_user.id} requested track")
     conn = get_connection()
