@@ -14,7 +14,7 @@ async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     
     if user_name:
         # User exists, use their name
-        context.user_data['name'] = user_name
+        context.user_data['user_name'] = user_name
         await update.message.reply_text(
             f"Hey {user_name}! Let's track your OPT application.\n"
             f"Enter your OPT application date (YYYY-MM-DD) or type 'pending':"
@@ -34,7 +34,7 @@ async def receive_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     # Save the user to the database
     get_or_create_user(user_id, name)
     
-    context.user_data['name'] = name
+    context.user_data['user_name'] = name
     await update.message.reply_text("Enter your OPT application date (YYYY-MM-DD) or type 'pending':")
     return APPLICATION_DATE
 
@@ -60,7 +60,9 @@ async def receive_approval_date(update: Update, context: ContextTypes.DEFAULT_TY
     
     if approval_text.lower() == "pending":
         context.user_data['approval_date'] = None
-        context.user_data['card_received_date'] = None
+        context.user_data['card_produced_date'] = None
+        context.user_data['card_shipped_date'] = None
+        context.user_data['card_delivered_date'] = None
         await save_application(update, context)
         return ConversationHandler.END
     
@@ -77,10 +79,12 @@ async def receive_card_received_date(update: Update, context: ContextTypes.DEFAU
     card_text = update.message.text
     
     if card_text.lower() == "pending":
-        context.user_data['card_received_date'] = None
+        context.user_data['card_produced_date'] = None
+        context.user_data['card_shipped_date'] = None
+        context.user_data['card_delivered_date'] = None
     else:
         try:
-            context.user_data['card_received_date'] = datetime.strptime(card_text, "%Y-%m-%d").date()
+            context.user_data['card_produced_date'] = datetime.strptime(card_text, "%Y-%m-%d").date()
         except ValueError:
             await update.message.reply_text("Invalid format. Use YYYY-MM-DD or type 'pending'.")
             return CARD_RECEIVED_DATE
@@ -92,10 +96,11 @@ async def save_application(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute(
-        "INSERT INTO applications (user_id, application_date, approval_date, card_received_date) VALUES (%s, %s, %s, %s)",
+        "UPDATE applications SET application_date = %s, approval_date = %s, card_produced_date = %s WHERE user_id = %s",
         (update.effective_user.id, context.user_data['application_date'], 
-         context.user_data['approval_date'], context.user_data['card_received_date'])
+         context.user_data['approval_date'], context.user_data['card_produced_date'])
     )
+    print(context.user_data['application_date'], context.user_data['approval_date'], context.user_data['card_produced_date'])
     conn.commit()
     conn.close()
     await update.message.reply_text("Your application data has been saved. Use /track to view all applications!")
