@@ -12,6 +12,12 @@ async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # Check if user already exists
     user_name = get_or_create_user(user_id)
     
+    context.user_data['application_date'] = None
+    context.user_data['approval_date'] = None
+    context.user_data['card_produced_date'] = None
+    context.user_data['card_shipped_date'] = None
+    context.user_data['card_delivered_date'] = None
+
     if user_name:
         # User exists, use their name
         context.user_data['user_name'] = user_name
@@ -40,12 +46,9 @@ async def receive_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
 
 async def receive_application_date(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     date_text = update.message.text
-    
     if date_text.lower() == "pending":
-        context.user_data['application_date'] = "pending"
-        await update.message.reply_text("Enter the approval date (YYYY-MM-DD) or type 'pending':")
-        return APPROVAL_DATE
-    
+        await save_application(update, context)
+        return ConversationHandler.END
     try:
         application_date = datetime.strptime(date_text, "%Y-%m-%d").date()
         context.user_data['application_date'] = application_date
@@ -59,7 +62,6 @@ async def receive_approval_date(update: Update, context: ContextTypes.DEFAULT_TY
     approval_text = update.message.text
     
     if approval_text.lower() == "pending":
-        context.user_data['approval_date'] = None
         context.user_data['card_produced_date'] = None
         context.user_data['card_shipped_date'] = None
         context.user_data['card_delivered_date'] = None
@@ -97,8 +99,7 @@ async def save_application(update: Update, context: ContextTypes.DEFAULT_TYPE) -
     cursor = conn.cursor()
     cursor.execute(
         "UPDATE applications SET application_date = %s, approval_date = %s, card_produced_date = %s WHERE user_id = %s",
-        (update.effective_user.id, context.user_data['application_date'], 
-         context.user_data['approval_date'], context.user_data['card_produced_date'])
+        (context.user_data['application_date'], context.user_data['approval_date'], context.user_data['card_produced_date'], update.effective_user.id)
     )
     print(context.user_data['application_date'], context.user_data['approval_date'], context.user_data['card_produced_date'])
     conn.commit()
