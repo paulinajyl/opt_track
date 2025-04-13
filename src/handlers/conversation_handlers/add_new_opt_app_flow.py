@@ -12,6 +12,12 @@ async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     # Check if user already exists
     user_name = get_or_create_user(user_id)
     
+    # Determine the message object based on whether this is a callback query or direct command
+    if update.callback_query:
+        message_obj = update.callback_query.message
+    else:
+        message_obj = update.message
+    
     context.user_data['application_date'] = None
     context.user_data['approval_date'] = None
     context.user_data['card_produced_date'] = None
@@ -21,14 +27,14 @@ async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     if user_name:
         # User exists, use their name
         context.user_data['user_name'] = user_name
-        await update.message.reply_text(
+        await message_obj.reply_text(
             f"Hey {user_name}! Let's track your OPT application.\n"
             f"Enter your OPT application date (YYYY-MM-DD) or type 'pending':"
         )
         return APPLICATION_DATE
     else:
         # New user, ask for their name
-        await update.message.reply_text(
+        await message_obj.reply_text(
             "Please tell me your name to start tracking your application."
         )
         return NAME
@@ -111,7 +117,7 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await update.message.reply_text("Operation cancelled. Use /add to begin tracking your application.")
     return ConversationHandler.END
 
-conv_handler = ConversationHandler(
+add_new_opt = ConversationHandler(
     entry_points=[CommandHandler("add", add)],
     states={
         NAME: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_name)],
