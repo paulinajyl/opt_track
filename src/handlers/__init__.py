@@ -1,16 +1,21 @@
 # In src/handlers/__init__.py
-from telegram.ext import CommandHandler, CallbackQueryHandler
+from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, filters
 
-from handlers.start import start_handler
-from handlers.help import help_handler
-from handlers.track import track_handler
-from handlers.clear import clear_handler
-from handlers.callbacks import button_callback_handler
+from handlers.command_handlers.start import start_handler
+from handlers.command_handlers.help import help_handler
+from handlers.command_handlers.track import track_handler
+from handlers.command_handlers.clear import clear_handler
 
-command_handlers = [
+from handlers.conversation_handlers.add_new_opt_app_flow import add_new_opt
+
+from handlers.callbacks import button_callback_handler, message_handler
+
+handlers = [
     CommandHandler("start", start_handler),
     CommandHandler("help", help_handler),
     CommandHandler("track", track_handler),
     CommandHandler("clear", clear_handler),
     CallbackQueryHandler(button_callback_handler),  
+    MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler),  
+    add_new_opt,
 ]

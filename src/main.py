@@ -1,11 +1,10 @@
 from telegram.ext import Application
-from add_new_opt_app_flow import conv_handler
 from database import setup_database
 import os
 from dotenv import load_dotenv
 import logging 
 
-from handlers import command_handlers
+from handlers import handlers
 
 load_dotenv()
 
@@ -24,11 +23,8 @@ def main():
     
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
-    for h in command_handlers: 
+    for h in handlers: 
         app.add_handler(h)
-
-    app.add_handler(conv_handler)
-
 
     if os.environ['LOCAL_TEST_ENV'] == 'local':
         print("🤖 Bot is starting in polling mode (local development)...")

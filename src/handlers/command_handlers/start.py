@@ -10,7 +10,7 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     
     keyboard = [
         [InlineKeyboardButton("👁️ See Applications", callback_data="show_track")],
-        [InlineKeyboardButton("✏️ Add Application", callback_data="show_add")]
+        [InlineKeyboardButton("✏️ Add/Update Application", callback_data="show_add")]
     ]
     
     
