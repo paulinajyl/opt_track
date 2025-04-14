@@ -3,14 +3,20 @@ from telegram.ext import MessageHandler, CommandHandler, ConversationHandler, fi
 from database import get_connection
 from datetime import datetime
 from database import get_or_create_user
+import logging
+logger = logging.getLogger(__name__)
+
 
 # Define conversation states
 NAME, APPLICATION_DATE, APPROVAL_DATE, CARD_RECEIVED_DATE = range(4)
 
 async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    print(f"Add command received from user: {update.effective_user.id}")
+    print("🆗 /add command triggered")
     user_id = update.effective_user.id
     # Check if user already exists
     user_name = get_or_create_user(user_id)
+    # logger.info(f"update.callback_query: {update.callback_query}")
     
     # Determine the message object based on whether this is a callback query or direct command
     if update.callback_query:
@@ -25,6 +31,7 @@ async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     context.user_data['card_delivered_date'] = None
 
     if user_name:
+        print("✅ Existing user, going to APPLICATION_DATE")
         # User exists, use their name
         context.user_data['user_name'] = user_name
         await message_obj.reply_text(
@@ -33,6 +40,7 @@ async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         )
         return APPLICATION_DATE
     else:
+        print("👤 New user, asking for name")
         # New user, ask for their name
         await message_obj.reply_text(
             "Please tell me your name to start tracking your application."
@@ -40,6 +48,8 @@ async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
         return NAME
 
 async def receive_name(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    print("➡️➡️➡️ Inside receive_name")
+    
     user_id = update.effective_user.id
     name = update.message.text
     
@@ -126,4 +136,7 @@ add_new_opt = ConversationHandler(
         CARD_RECEIVED_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_card_received_date)],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
+    per_user=True,  # 👈 Add this
+    per_chat=False,
+    conversation_timeout=None
 )

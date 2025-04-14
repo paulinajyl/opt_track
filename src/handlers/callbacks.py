@@ -26,6 +26,7 @@ async def button_callback_handler(update: Update, context: ContextTypes.DEFAULT_
     elif query.data == "show_add":
         logger.debug("Handling show_add callback")
         if get_or_create_user(update.effective_user.id) is None:
+            print("❗❗❗ User not found in database, calling add function")
             await add(update, context)
         else:
             await update_handler(update, context)
@@ -62,6 +63,7 @@ async def handle_field_update(update: Update, context: ContextTypes.DEFAULT_TYPE
     context.user_data['update_message_id'] = message.message_id
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    print("❗ message_handler triggered — conversation not active")
     """Handle text messages, including responses to field updates"""
     logger.debug("message_handler called")
     logger.debug(f"Context user data: {context.user_data}")
