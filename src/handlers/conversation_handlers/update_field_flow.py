@@ -9,8 +9,27 @@ logger = logging.getLogger(__name__)
 # Define conversation states
 UPDATE_FIELD = range(1)
 
-async def update_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-    """Update a specific field in the application"""
+async def start_update_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Start the field update conversation after a button callback"""
+    query = update.callback_query
+    field = query.data.replace("update_", "")
+    context.user_data['update_field'] = field
+    
+    field_names = {
+        "application_date": "application",
+        "approval_date": "approval",
+        "card_produced": "card produced",
+        "card_shipped": "card shipped",
+        "card_delivered": "card delivered"
+    }
+    
+    await query.message.reply_text(
+        f"Please enter the new {field_names.get(field, field)} date (YYYY-MM-DD) or type 'pending' to clear this field:"
+    )
+    return UPDATE_FIELD
+
+async def process_update_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    """Process the new value for a field update"""
     if not context.user_data.get('update_field'):
         await update.message.reply_text("Error: No field selected for update. Please try again.")
         return ConversationHandler.END
@@ -19,7 +38,7 @@ async def update_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     new_value = update.message.text
     user_id = update.effective_user.id
     
-    if new_value.lower() == "pending":
+    if new_value.lower() == "pending" or new_value.lower() == "none":
         new_value = None
     else:
         # For date fields, validate the date format
@@ -48,19 +67,16 @@ async def update_field(update: Update, context: ContextTypes.DEFAULT_TYPE) -> in
     # Update the database
     conn = get_connection()
     cursor = conn.cursor()
-    
     cursor.execute(
         f"UPDATE applications SET {db_field} = %s WHERE user_id = %s",
         (new_value, user_id)
     )
-    
     conn.commit()
     conn.close()
     
     await update.message.reply_text(
         f"Your {field.replace('_', ' ')} has been updated. Use /track to see all applications."
     )
-    
     return ConversationHandler.END
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -71,10 +87,10 @@ async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
 # Create the conversation handler for updating fields
 update_field_conv_handler = ConversationHandler(
     entry_points=[CallbackQueryHandler(
-        lambda u, c: 1 if u.callback_query.data.startswith("update_") else None
+        start_update_field, pattern="^update_"
     )],
     states={
-        UPDATE_FIELD: [MessageHandler(filters.TEXT & ~filters.COMMAND, update_field)],
+        UPDATE_FIELD: [MessageHandler(filters.TEXT & ~filters.COMMAND, process_update_field)],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
 )
