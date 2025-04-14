@@ -1,9 +1,10 @@
 # In src/handlers/callbacks.py - A simpler direct approach
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram import Update
 from telegram.ext import ContextTypes
 import logging
 from handlers.command_handlers.track import track_handler
-from handlers.command_handlers.update import update_handler, process_update_text
+from handlers.command_handlers.start import start_handler
+from handlers.command_handlers.update import update_handler
 from handlers.conversation_handlers.add_new_opt_app_flow import add
 from database import get_or_create_user, get_connection
 from datetime import datetime
@@ -112,13 +113,15 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         conn.close()
         
         await update.message.reply_text(
-            f"Your {field.replace('_', ' ')} has been updated. Use /track to see all applications."
+            f"Your {field.replace('_', ' ')} has been updated."
         )
         
         # Clear the field from context
         del context.user_data['update_field']
         if 'update_message_id' in context.user_data:
             del context.user_data['update_message_id']
+
+        await start_handler(update, context) 
     else:
         # Handle other text messages here if needed
         logger.debug("Received text message but not in field update mode")

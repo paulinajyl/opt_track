@@ -3,6 +3,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 import logging
 from database import get_connection
+from handlers.command_handlers.start import start_handler 
 logger = logging.getLogger(__name__)
 
 async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -90,3 +91,4 @@ async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         
     conn.close()
     await message_obj.reply_text(message, parse_mode="Markdown")
+    await start_handler(update, context)

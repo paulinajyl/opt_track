@@ -4,8 +4,7 @@ import os
 from dotenv import load_dotenv
 import logging 
 
-from handlers import command_handlers
-from handlers import conversation_handlers
+from handlers import handlers
 
 load_dotenv()
 
@@ -24,7 +23,7 @@ def main():
     
     app = Application.builder().token(TELEGRAM_TOKEN).build()
 
-    for h in command_handlers + conversation_handlers: 
+    for h in handlers: 
         app.add_handler(h)
 
     if os.environ['LOCAL_TEST_ENV'] == 'local':
