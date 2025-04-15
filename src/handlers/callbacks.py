@@ -81,6 +81,9 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         
         if new_value.lower() == "none" or new_value.lower() == "pending":
             new_value = None
+            await update.message.reply_text(
+            f"Your {field.replace('_', ' ')} has been updated."
+        )
         else:
             # For date fields, validate the date format
             if "date" in field or field in ["card_produced", "card_shipped", "card_delivered"]:
