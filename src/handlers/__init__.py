@@ -15,8 +15,8 @@ handlers = [
     CommandHandler("help", help_handler),
     CommandHandler("track", track_handler),
     CommandHandler("clear", clear_handler),
-    CallbackQueryHandler(button_callback_handler),  
     add_new_opt,
+    CallbackQueryHandler(button_callback_handler),  
     MessageHandler(filters.TEXT & ~filters.COMMAND, message_handler)  
     
 ]
