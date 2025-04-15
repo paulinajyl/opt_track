@@ -17,6 +17,6 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(
-        "Hi! Let's consolidate all OPT applications in one place. What would you like to do?",
+        "Hi! Let's consolidate all OPT applications in one place. What would you like to do? Use /help for a compolete list of commands.",
         reply_markup=reply_markup
     )

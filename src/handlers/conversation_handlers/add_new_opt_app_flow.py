@@ -136,7 +136,7 @@ add_new_opt = ConversationHandler(
         CARD_RECEIVED_DATE: [MessageHandler(filters.TEXT & ~filters.COMMAND, receive_card_received_date)],
     },
     fallbacks=[CommandHandler("cancel", cancel)],
-    per_user=True,  # 👈 Add this
+    per_user=True, 
     per_chat=False,
     conversation_timeout=None
 )
