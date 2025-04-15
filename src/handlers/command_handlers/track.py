@@ -3,7 +3,6 @@ from telegram import Update
 from telegram.ext import ContextTypes
 import logging
 from database import get_connection
-from handlers.command_handlers.start import start_handler 
 logger = logging.getLogger(__name__)
 
 async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -71,7 +70,7 @@ async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             
     # Format combined in-progress applications section
     if pending_apps:
-        message += "🕒 *IN-PROGRESS APPLICATIONS* 🕒\n\n"
+        message += "🕒 *PROCESSING APPLICATIONS* 🕒\n\n"
         for i, app in enumerate(pending_apps, 1):
             status = "Waiting for card" if app['approved_date'] else "Pending approval"
                 
@@ -91,4 +90,3 @@ async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         
     conn.close()
     await message_obj.reply_text(message, parse_mode="Markdown")
-    await start_handler(update, context)

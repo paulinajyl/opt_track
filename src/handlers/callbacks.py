@@ -124,7 +124,6 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         if 'update_message_id' in context.user_data:
             del context.user_data['update_message_id']
 
-        await start_handler(update, context) 
     else:
         # Handle other text messages here if needed
         logger.debug("Received text message but not in field update mode")
