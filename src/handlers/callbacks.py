@@ -57,7 +57,7 @@ async def handle_field_update(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     # Send prompt for input
     message = await query.message.reply_text(
-        f"Please enter the new {field_names.get(field, field)} date (YYYY-MM-DD) or type 'none' to clear this field:"
+        f"Please enter the new {field_names.get(field, field)} date (YYYY-MM-DD) or type 'pending' to clear this field:"
     )
     
     # Store the message ID to identify the response
@@ -88,7 +88,7 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
                     # Validate the date format
                     datetime.strptime(new_value, "%Y-%m-%d").date()
                 except ValueError:
-                    await update.message.reply_text("Invalid format. Use YYYY-MM-DD or type 'none'.")
+                    await update.message.reply_text("Invalid format. Use YYYY-MM-DD or type 'pending'.")
                     return
         
         # Map the callback data field to database column

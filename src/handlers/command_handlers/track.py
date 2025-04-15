@@ -82,6 +82,12 @@ async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
             
             if app['approved_date']:
                 message += f"3. Approved Date: {app['approved_date']}\n"
+            
+            if app['approved_date']:
+                message += f"4. Produced Date: {app['card_produced']}\n"
+            
+            if app['approved_date']:
+                message += f"5. Shipped Date: {app['card_shipped']}\n"
                 
             message += f"{3 if not app['approved_date'] else 4}. Status: {status}\n\n"
             
