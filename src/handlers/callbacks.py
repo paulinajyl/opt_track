@@ -10,7 +10,7 @@ from database import get_or_create_user, get_connection
 from datetime import datetime
 
 # Set up logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.DEBUG)
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 async def button_callback_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -26,7 +26,9 @@ async def button_callback_handler(update: Update, context: ContextTypes.DEFAULT_
     elif query.data == "show_add":
         logger.debug("Handling show_add callback")
         if get_or_create_user(update.effective_user.id) is None:
-            await add(update, context)
+            await query.message.reply_text( 
+                f"No OPT application found for you. Please add your application using /add."
+            )
         else:
             await update_handler(update, context)
     elif query.data.startswith("update_"):
@@ -62,6 +64,7 @@ async def handle_field_update(update: Update, context: ContextTypes.DEFAULT_TYPE
     context.user_data['update_message_id'] = message.message_id
 
 async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    print("❗ message_handler triggered — conversation not active")
     """Handle text messages, including responses to field updates"""
     logger.debug("message_handler called")
     logger.debug(f"Context user data: {context.user_data}")
@@ -121,7 +124,6 @@ async def message_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         if 'update_message_id' in context.user_data:
             del context.user_data['update_message_id']
 
-        await start_handler(update, context) 
     else:
         # Handle other text messages here if needed
         logger.debug("Received text message but not in field update mode")
