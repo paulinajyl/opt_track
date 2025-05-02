@@ -17,7 +17,7 @@ async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     
     # Updated DB query with full fields
     cursor.execute("""
-     SEL
+     SELECT
      user_name, premium_processing,
      application_date, approval_date,
      card_produced_date, card_shipped_date, card_delivered_date
