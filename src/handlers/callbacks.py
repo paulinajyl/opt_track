@@ -1,8 +1,8 @@
-# In src/handlers/callbacks.py - A simpler direct approach
+# In src/handlers/callbacks.py
 from telegram import Update
 from telegram.ext import ContextTypes
 import logging
-from handlers.command_handlers.track import track_handler
+from handlers.command_handlers.track_details import track_handler  # Updated import to use the new track handler
 from handlers.command_handlers.start import start_handler
 from handlers.command_handlers.update import update_handler
 from handlers.conversation_handlers.add_new_opt_app_flow import add
@@ -18,12 +18,16 @@ async def button_callback_handler(update: Update, context: ContextTypes.DEFAULT_
     query = update.callback_query
     logger.debug(f"Received callback query with data: {query.data}")
     
-    await query.answer()  # Answer the callback query
-    
-    if query.data == "show_track":
-        logger.debug("Handling show_track callback")
+    # For track-related callbacks, delegate to track_handler directly
+    if query.data == "show_track" or query.data.startswith("track_"):
+        logger.debug(f"Handling track-related callback: {query.data}")
         await track_handler(update, context)
-    elif query.data == "show_add":
+        return
+    
+    # Answer other callback queries
+    await query.answer()
+    
+    if query.data == "show_add":
         logger.debug("Handling show_add callback")
         if get_or_create_user(update.effective_user.id) is None:
             await query.message.reply_text( 
