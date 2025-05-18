@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes
 import logging
 from database import get_connection
 from datetime import datetime
-
+from statistics import median
 logger = logging.getLogger(__name__)
 
 # Constants
@@ -11,9 +11,49 @@ TELEGRAM_MAX_LENGTH = 4000  # Setting slightly below the 4096 limit to be safe
 MAX_APPS_PER_MESSAGE = 20
 PAGE_SIZE = 30  # Number of applications to show per page
 
+from statistics import median
+
+def get_summary_stats(applications):
+    delivered_apps = [app for app in applications if app["card_delivered"]]
+    
+    # Calculate processing times (application to delivery)
+    processing_times = []
+    for app in delivered_apps:
+        try:
+            app_date = datetime.strptime(app["application_date"], "%Y-%m-%d") if isinstance(app["application_date"], str) else app["application_date"]
+            deliv_date = datetime.strptime(app["card_delivered"], "%Y-%m-%d") if isinstance(app["card_delivered"], str) else app["card_delivered"]
+            processing_times.append((deliv_date - app_date).days)
+        except Exception as e:
+            logger.error(f"Error parsing dates for median calculation: {e}")
+    
+    current_median_time = f"{median(processing_times)} days" if processing_times else "N/A"
+
+    # Get latest receipt date for each stage
+    def get_latest_receipt_date(key):
+        filtered = [app for app in applications if app[key]]
+        if not filtered:
+            return "N/A"
+        latest = max(filtered, key=lambda x: x[key])
+        return latest["application_date"]
+
+    latest_approved_receipt = get_latest_receipt_date("approved_date")
+    latest_approved_produced = get_latest_receipt_date("card_produced")
+    latest_approved_delivered = get_latest_receipt_date("card_delivered")
+    latest_approved_received = get_latest_receipt_date("card_shipped")
+
+    return {
+        "current_median_time": current_median_time,
+        "latest_approved_receipt": latest_approved_receipt,
+        "latest_approved_produced": latest_approved_produced,
+        "latest_approved_delivered": latest_approved_delivered,
+        "latest_approved_received": latest_approved_received
+    }
+
+
 # Main handler that will handle button selection
 async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"User {update.effective_user.id} requested track")
+    applications = load_applications_from_db()
     
     # Determine if this is from a callback or direct command
     callback_data = None
@@ -27,17 +67,14 @@ async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     
     # If no specific callback, show the main menu
     if not callback_data or callback_data == "track_main":
-        await show_tracking_menu(message_obj)
+        await show_tracking_menu(message_obj, applications)
         return
     
     # Parse callback data to determine which view to show
     parts = callback_data.split('_')
     if len(parts) < 2:
-        await show_tracking_menu(message_obj)
+        await show_tracking_menu(message_obj, applications)
         return
-    
-    # Load applications from database only once
-    applications = load_applications_from_db()
     
     # Process paging if present in callback
     page = 1
@@ -58,22 +95,35 @@ async def track_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     elif callback_data == "track_all":
         await show_all_applications(message_obj, applications, page)
     else:
-        await show_tracking_menu(message_obj)
+        await show_tracking_menu(message_obj, applications)
 
 # Show the main tracking menu with buttons
-async def show_tracking_menu(message_obj):
+async def show_tracking_menu(message_obj, applications):
     keyboard = [
         [
-            InlineKeyboardButton("📬 Delivered Cards", callback_data="track_delivered"),
-            InlineKeyboardButton("⏳ Waiting for Card", callback_data="track_waiting")
+            InlineKeyboardButton("📬 Delivered", callback_data="track_delivered"),
+            InlineKeyboardButton("⏳ Produced", callback_data="track_waiting")
         ],
         [
-            InlineKeyboardButton("🗿 Pending Approval", callback_data="track_pending"),
+            InlineKeyboardButton("🗿 Pending", callback_data="track_pending"),
             InlineKeyboardButton("📋 All Applications", callback_data="track_all")
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await message_obj.reply_text("Choose a category to view:", reply_markup=reply_markup)
+
+    stats = get_summary_stats(applications)
+    message = (
+        f"📊 EAD Card Tracker Summary 📊"
+        f"\n🚀 Current median processing time: {stats['current_median_time']}"
+        f"\nLatest receipt date that was:"
+        f"\n\t✅ Approved: {stats['latest_approved_receipt']}"
+        f"\n\t🏭 Produced: {stats['latest_approved_produced']}"
+        f"\n\t📦 Delivered: {stats['latest_approved_delivered']}"
+        f"\n\t📥 Received: {stats['latest_approved_received']}"
+        f"\n\nChoose an option to see more information"
+    )
+
+    await message_obj.reply_text(message, reply_markup=reply_markup, parse_mode="Markdown")
 
 # Load all applications from the database
 def load_applications_from_db():
@@ -135,17 +185,17 @@ def get_pagination_keyboard(callback_prefix, current_page, total_pages):
     
     # Add navigation buttons (Previous/Next)
     if current_page > 1:
-        nav_buttons.append(InlineKeyboardButton("⬅️ Previous", callback_data=f"{callback_prefix}_page_{current_page-1}"))
+        nav_buttons.append(InlineKeyboardButton(f"⬅️ Previous ({current_page}/{total_pages})", callback_data=f"{callback_prefix}_page_{current_page-1}"))
     
     if current_page < total_pages:
-        nav_buttons.append(InlineKeyboardButton("Next ➡️", callback_data=f"{callback_prefix}_page_{current_page+1}"))
+        nav_buttons.append(InlineKeyboardButton(f"Next ({current_page}/{total_pages}) ➡️", callback_data=f"{callback_prefix}_page_{current_page+1}"))
     
     # Add nav buttons to keyboard if there are any
     if nav_buttons:
         keyboard.append(nav_buttons)
     
     # Always add back button in its own row
-    keyboard.append([InlineKeyboardButton("🔙 Back", callback_data="track_main")])
+    keyboard.append([InlineKeyboardButton("🔙 Back to Menu", callback_data="track_main")])
     
     return InlineKeyboardMarkup(keyboard)
 
