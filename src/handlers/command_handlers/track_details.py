@@ -14,7 +14,7 @@ PAGE_SIZE = 30  # Number of applications to show per page
 from statistics import median
 
 def get_summary_stats(applications):
-    delivered_apps = [app for app in applications if app["card_delivered"]]
+    delivered_apps = [app for app in applications if app["card_delivered"] and app["premium_processing"] != "True"]
     
     # Calculate processing times (application to delivery)
     processing_times = []
@@ -30,7 +30,7 @@ def get_summary_stats(applications):
 
     # Get latest receipt date for each stage
     def get_latest_receipt_date(key):
-        filtered = [app for app in applications if app[key]]
+        filtered = [app for app in applications if app[key] and app["premium_processing"] != "True"]
         if not filtered:
             return "N/A"
         latest = max(filtered, key=lambda x: x[key])
