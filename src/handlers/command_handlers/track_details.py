@@ -38,14 +38,14 @@ def get_summary_stats(applications):
 
     latest_approved_receipt = get_latest_receipt_date("approved_date")
     latest_approved_produced = get_latest_receipt_date("card_produced")
-    latest_approved_delivered = get_latest_receipt_date("card_delivered")
-    latest_approved_received = get_latest_receipt_date("card_shipped")
+    latest_approved_shipped = get_latest_receipt_date("card_shipped")
+    latest_approved_received = get_latest_receipt_date("card_delivered")
 
     return {
         "current_median_time": current_median_time,
         "latest_approved_receipt": latest_approved_receipt,
         "latest_approved_produced": latest_approved_produced,
-        "latest_approved_delivered": latest_approved_delivered,
+        "latest_approved_shipped": latest_approved_shipped,
         "latest_approved_received": latest_approved_received
     }
 
@@ -118,7 +118,7 @@ async def show_tracking_menu(message_obj, applications):
         f"\nLatest receipt date that was:"
         f"\n\t✅ Approved: {stats['latest_approved_receipt']}"
         f"\n\t🏭 Produced: {stats['latest_approved_produced']}"
-        f"\n\t📦 Delivered: {stats['latest_approved_delivered']}"
+        f"\n\t📦 Shipped: {stats['latest_approved_shipped']}"
         f"\n\t📥 Received: {stats['latest_approved_received']}"
         f"\n\nChoose an option to see more information"
     )
