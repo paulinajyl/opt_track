@@ -3,7 +3,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler, MessageHandler, f
 
 from handlers.command_handlers.start import start_handler
 from handlers.command_handlers.help import help_handler
-from handlers.command_handlers.track import track_handler
+from handlers.command_handlers.track_details import track_handler
 from handlers.command_handlers.clear import clear_handler
 
 from handlers.conversation_handlers.add_new_opt_app_flow import add_new_opt
